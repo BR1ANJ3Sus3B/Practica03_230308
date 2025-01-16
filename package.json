@@ -1,0 +1,21 @@
+{
+  "name": "230308_mx.utjx.ti.awi4.230308.practica03",
+  "version": "1.0.0",
+  "description": "Repaso de manejo de sesiones",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Express",
+    "Session"
+  ],
+  "author": "Brian jesus mendoza marquez ",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "moment-timezone": "^0.5.46",
+    "nodemon": "^3.1.9"
+  }
+}
