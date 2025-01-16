@@ -4,6 +4,7 @@ const moment = require('moment-timezone');
 
 const app = express();
 
+// Configuración de la sesión
 app.use(session({
     secret: 'P3-BJMM#Tigrito-sessionesperpectivas',
     resave: false,
@@ -11,7 +12,7 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
 }));
 
-// Encabezado y pie de página
+// Encabezado y contenido principal
 const layout = (content) => `
     <body style="font-family: Arial, sans-serif; background-color:rgb(16, 220, 231); color: #333; margin: 0;">
         <header style="background-color: #333; color: white; padding: 10px 20px; text-align: center;">
@@ -20,16 +21,17 @@ const layout = (content) => `
         <main style="padding: 20px; text-align: center;">
             ${content}
         </main>
-        
     </body>
 `;
 
 // Middleware para registrar sesión
 app.use((req, res, next) => {
     if (req.session) {
+        // Si no existe la propiedad 'createAt', la inicializamos con la fecha actual
         if (!req.session.createAt) {
             req.session.createAt = new Date().toISOString();
         }
+        // Actualizamos la propiedad 'lastAccess' con la fecha del último acceso
         req.session.lastAccess = new Date().toISOString();
     }
     next();
@@ -37,11 +39,12 @@ app.use((req, res, next) => {
 
 // Ruta: Información de la sesión
 app.get('/session', (req, res) => {
+    // Verificamos si hay una sesión activa
     if (req.session && req.session.isLoggedIn) {
         const sessionId = req.session.id;
         const createAt = new Date(req.session.createAt);
         const lastAccess = new Date(req.session.lastAccess);
-        const sessionDuration = Math.floor((new Date() - createAt) / 1000);
+        const sessionDuration = Math.floor((new Date() - createAt) / 1000); // Duración en segundos
 
         res.send(layout(`
             <h2>Detalles de la Sesión</h2>
@@ -53,7 +56,7 @@ app.get('/session', (req, res) => {
             <a href="/logout" style="color: red;">Cerrar Sesión</a>
         `));
     } else {
-        res.send(layout(`<h2>No hay sesión activa</h2>`));
+        res.send(layout(`<h2>No hay sesión activa</h2>`)); // Mensaje si no hay sesión activa
     }
 });
 
@@ -61,8 +64,10 @@ app.get('/session', (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
+            // Error al cerrar sesión
             res.send(layout(`<h2 style="color: red;">Error al cerrar sesión</h2>`));
         } else {
+            // Mensaje de éxito al cerrar sesión
             res.send(layout(`<h2 style="color: green;">Sesión cerrada exitosamente</h2>`));
         }
     });
@@ -73,6 +78,7 @@ app.get('/login/:user/:psswd', (req, res) => {
     const usr = req.params.user;
     const pswd = req.params.psswd;
 
+    // Verificamos si no hay sesión activa
     if (!req.session.isLoggedIn) {
         req.session.usr = usr;
         req.session.pswd = pswd;
@@ -95,16 +101,19 @@ app.get('/login/:user/:psswd', (req, res) => {
 
 // Ruta: Estado de sesión
 app.get('/status', (req, res) => {
+    // Verificamos si la sesión está activa
     if (req.session.isLoggedIn) {
         const now = new Date();
         const started = new Date(req.session.createAt);
         const lastUpdate = new Date(req.session.lastAccess);
 
+        // Calculamos el tiempo que ha pasado desde el inicio de la sesión
         const sessionAgeMs = now - started;
-        const hours = Math.floor(sessionAgeMs / (1000 * 60 * 60));
-        const minutes = Math.floor((sessionAgeMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((sessionAgeMs % (1000 * 60)) / 1000);
+        const hours = Math.floor(sessionAgeMs / (1000 * 60 * 60)); // Horas
+        const minutes = Math.floor((sessionAgeMs % (1000 * 60 * 60)) / (1000 * 60)); // Minutos
+        const seconds = Math.floor((sessionAgeMs % (1000 * 60)) / 1000); // Segundos
 
+        // Formateamos las fechas en la zona horaria de Ciudad de México
         const createAt_CDMX = moment(started).tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss');
         const lastAccess_CDMX = moment(lastUpdate).tz('America/Mexico_City').format('YYYY-MM-DD HH:mm:ss');
 
@@ -113,10 +122,10 @@ app.get('/status', (req, res) => {
             sessionId: req.sessionID,
             inicio: createAt_CDMX,
             ultimoAcceso: lastAccess_CDMX,
-            antiguedad: `${hours} horas, ${minutes} minutos y ${seconds} segundos`,
+            antiguedad: `${hours} horas, ${minutes} minutos y ${seconds} segundos`, // Duración de la sesión
         });
     } else {
-        res.send(layout(`<h2>No hay sesión activa</h2>`));
+        res.send(layout(`<h2>No hay sesión activa</h2>`)); // Mensaje si no hay sesión activa
     }
 });
 
